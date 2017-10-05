@@ -1,13 +1,16 @@
 package org.apache.kafka.connect.directory;
 
+import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.utils.AppInfoParser;
 import org.apache.kafka.connect.connector.Task;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.apache.kafka.connect.source.SourceConnector;
-import org.apache.kafka.connect.util.ConnectorUtils;
-import org.apache.kafka.connect.utils.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -26,6 +29,19 @@ public class DirectorySourceConnector extends SourceConnector {
     private String check_dir_ms;
     private String schema_name;
     private String topic;
+
+
+    private static final ConfigDef CONFIG_DEF = new ConfigDef()
+            .define("directories.paths", ConfigDef.Type.STRING, ConfigDef.Importance.LOW, "comma separated list of directories to watch, one per task")
+            .define("check.dir.ms", ConfigDef.Type.INT, ConfigDef.Importance.LOW, "interval at which to check for updates in the directories")
+            ;
+
+
+
+    @Override
+    public ConfigDef config() {
+        return CONFIG_DEF;
+    }
 
     /**
      * Get the version of this connector.
