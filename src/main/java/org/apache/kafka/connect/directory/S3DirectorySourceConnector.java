@@ -17,7 +17,7 @@ import java.util.Map;
  * DirectorySourceConnector implements the connector interface
  * to write on Kafka file system events (creations, modifications etc)
  *
- * @author Sergio Spinatelli
+ * @author walsbr
  */
 public class S3DirectorySourceConnector extends SourceConnector {
     public static final String INTERVAL_MS = "interval_ms";
@@ -39,10 +39,10 @@ public class S3DirectorySourceConnector extends SourceConnector {
 
 
     private static final ConfigDef CONFIG_DEF = new ConfigDef()
-            .define(SERVICE_ENDPOINT, ConfigDef.Type.STRING, ConfigDef.Importance.MEDIUM, "S3 compatible endpoint (aws/swift).")
-            .define(REGION_NAME, ConfigDef.Type.STRING, ConfigDef.Importance.LOW, "S3 Region name.")
-            .define(BUCKET_NAMES, ConfigDef.Type.STRING, ConfigDef.Importance.LOW, "Comma separated list of buckets to watch, one per task. Defaults to all buckets. If specified, count of buckets must agree with maxTasks")
-            .define(INTERVAL_MS, ConfigDef.Type.INT, ConfigDef.Importance.LOW, "Interval at which to check for updates in the buckets. Defaults to 60 secs.")
+            .define(SERVICE_ENDPOINT, ConfigDef.Type.STRING, "https://s3.us-west-2.amazonaws.com", ConfigDef.Importance.MEDIUM, "S3 compatible endpoint (aws/swift).")
+            .define(REGION_NAME, ConfigDef.Type.STRING, "us-west-2",ConfigDef.Importance.MEDIUM, "S3 Region name.")
+            .define(BUCKET_NAMES, ConfigDef.Type.STRING,null, ConfigDef.Importance.LOW, "Comma separated list of buckets to watch, one per task. Defaults to all buckets. If specified, count of buckets must agree with maxTasks")
+            .define(INTERVAL_MS, ConfigDef.Type.STRING, "60000", ConfigDef.Importance.LOW, "Interval at which to check for updates in the buckets. Defaults to 60 secs.")
             ;
 
 
@@ -73,27 +73,29 @@ public class S3DirectorySourceConnector extends SourceConnector {
     public void start(Map<String, String> props) {
         schema_name = props.get(SCHEMA_NAME);
         if (schema_name == null || schema_name.isEmpty())
-            throw new ConnectException("missing schema.name");
+            throw new ConnectException("missing " + SCHEMA_NAME);
 
         topic = props.get(TOPIC);
         if (topic == null || topic.isEmpty())
-            throw new ConnectException("missing topic");
+            throw new ConnectException("missing " + TOPIC );
 
 
         interval_ms = props.get(INTERVAL_MS);
         if (interval_ms == null || interval_ms.isEmpty())
-            interval_ms = "60000";
+            throw new ConnectException("missing " + INTERVAL_MS);
 
         bucket_names = props.get(BUCKET_NAMES);
+        if (bucket_names == null || bucket_names.isEmpty())
+            throw new ConnectException("missing " + BUCKET_NAMES);
 
         region_name = props.get(REGION_NAME);
         if (region_name == null || region_name.isEmpty())
-            region_name = "us-west-2";
+            throw new ConnectException("missing " + REGION_NAME);
 
 
         service_endpoint = props.get(SERVICE_ENDPOINT);
         if (service_endpoint == null || service_endpoint.isEmpty())
-            service_endpoint = "https://s3.us-west-2.amazonaws.com" ;
+            throw new ConnectException("missing " + SERVICE_ENDPOINT);
 
     }
 

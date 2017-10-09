@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.apache.kafka.common.errors.InterruptException;
 import org.apache.kafka.connect.data.Schema;
-import org.apache.kafka.connect.errors.ConnectException;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.source.SourceTask;
 import org.apache.kafka.connect.utils.S3Watcher;
@@ -55,22 +54,16 @@ public class S3DirectorySourceTask extends SourceTask {
     public void start(Map<String, String> props) {
 
         String schemaName = props.get(S3DirectorySourceConnector.SCHEMA_NAME);
-        if (schemaName == null)
-            throw new ConnectException("config schema.name null");
 
         topic = props.get(S3DirectorySourceConnector.TOPIC);
-        if (topic == null)
-            throw new ConnectException("config topic null");
 
         String interval_ms = props.get(S3DirectorySourceConnector.INTERVAL_MS);
-        if (interval_ms == null)
-            throw new ConnectException("config interval_ms null");
 
         String marker = props.get(MARKER);
 
         String bucketName = props.get(BUCKET);
 
-        // override marker with partition
+        // override marker with partition, if it exists
         if (bucketName != null) {
             Map<String, Object> off = context.offsetStorageReader().offset(offsetKey(bucketName));
             if (off != null)
