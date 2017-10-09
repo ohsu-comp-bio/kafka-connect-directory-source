@@ -4,7 +4,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.powermock.api.easymock.PowerMock;
 
-import java.io.File;
 import java.io.IOException;
 
 
@@ -19,7 +18,6 @@ public class DirWatcherTest {
 
     @Test
     public void testNormalLifecycle() {
-
     }
 
     private void replay() {
