@@ -54,10 +54,12 @@ public class S3DirectorySourceTask extends SourceTask {
     @Override
     public void start(Map<String, String> props) {
 
+        log.warn("********** S3DirectorySourceConnector PROPERTIES START");
         Map<String, String> env = System.getenv();
         for (String envName : env.keySet()) {
             log.warn(envName + "=" + env.get(envName));
         }
+        log.warn("********** S3DirectorySourceConnector PROPERTIES END");
 
         String schemaName = props.get(S3DirectorySourceConnector.SCHEMA_NAME);
 
