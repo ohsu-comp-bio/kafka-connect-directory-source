@@ -67,19 +67,38 @@ public abstract class  S3Watcher  extends TimerTask {
     public final void run() {
         try {
 
-//            AmazonS3 s3 =  AmazonS3ClientBuilder.defaultClient();
+            log.debug("******************************************");
+            log.debug(serviceEndpoint);
+            log.debug(regionName);
+            log.debug("******************************************");
 
 
-            AwsClientBuilder.EndpointConfiguration endpoint = new AwsClientBuilder.EndpointConfiguration(this.serviceEndpoint, this.regionName);
-            AmazonS3 s3 = AmazonS3ClientBuilder
+            AmazonS3 s3 = null ;
+
+//            ClientConfiguration cc = new ClientConfiguration();
+//            cc.withSignerOverride("S3SignerType");
+//            cc.setProtocol(Protocol.HTTP);
+
+
+            AwsClientBuilder.EndpointConfiguration ec = new AwsClientBuilder.EndpointConfiguration(this.serviceEndpoint, this.regionName);
+
+            s3 = AmazonS3ClientBuilder
                     .standard()
                     .withPathStyleAccessEnabled(true)
-                    .withEndpointConfiguration(endpoint)
-//                    .withCredentials(new AWSStaticCredentialsProvider(new AnonymousAWSCredentials()))
-//                    .withCredentials(new EnvironmentVariableCredentialsProvider())
                     .withCredentials(new DefaultAWSCredentialsProviderChain())
+                    .withEndpointConfiguration(ec)
+//                    .withClientConfiguration(cc)
                     .build();
 
+
+
+//            ClientConfiguration opts = new ClientConfiguration();
+//            opts.setSignerOverride("AWSS3V4SignerType");  // NOT "AWS3SignerType"
+//            AmazonS3Client s3 = new AmazonS3Client(opts);
+//            s3.setEndpoint(serviceEndpoint);
+
+//                    .withCredentials(new AWSStaticCredentialsProvider(new AnonymousAWSCredentials()))
+//                    .withCredentials(new EnvironmentVariableCredentialsProvider())
 
 
             for (Bucket bucket : s3.listBuckets() ) {
@@ -97,10 +116,9 @@ public abstract class  S3Watcher  extends TimerTask {
                     for (S3ObjectSummary os : objects) {
                         S3Object o = s3.getObject(bucket.getName(), os.getKey());
                         ObjectMetadata meta = o.getObjectMetadata();
+                        nextMarker = ol.getNextMarker();
                         onObjectFound(bucket, os, meta, nextMarker);
-//                        o.close();
                     }
-                    nextMarker = ol.getNextMarker();
                 } while(ol.isTruncated() == true );
             }
         } catch (AmazonServiceException ase) {

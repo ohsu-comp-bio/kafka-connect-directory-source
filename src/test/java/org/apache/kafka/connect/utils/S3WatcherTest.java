@@ -16,10 +16,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 
-//import io.findify.s3mock.S3Mock;
 
 /**
- *
+ * test against local embedded s3 source
  */
 public class S3WatcherTest extends AbstractS3Test {
 

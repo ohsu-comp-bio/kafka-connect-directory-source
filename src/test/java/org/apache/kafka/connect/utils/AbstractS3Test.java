@@ -23,7 +23,7 @@ import io.findify.s3mock.S3Mock;
 
 
 /**
- *
+ * bring up local embedded s3 source
  */
 public class AbstractS3Test {
 

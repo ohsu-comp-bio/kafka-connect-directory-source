@@ -8,6 +8,7 @@ import java.io.IOException;
 
 
 /**
+ * apparently does nothing ...! (bw)
  * @author Sergio Spinatelli
  */
 public class DirWatcherTest {
