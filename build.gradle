@@ -1,0 +1,63 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
+    }
+}
+
+
+apply plugin: 'java'
+
+group = 'org.apache.kafka'
+version = '1.0'
+
+description = "connect-directory-source"
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+
+
+repositories {
+        
+     maven { url "http://repo.maven.apache.org/maven2" }
+}
+dependencies {
+    compile group: 'com.amazonaws', name: 'aws-java-sdk', version:'1.11.160'
+    testCompile group: 'junit', name: 'junit', version:'4.12'
+    testCompile group: 'org.powermock', name: 'powermock-api-easymock', version:'1.6.4'
+    testCompile group: 'org.easymock', name: 'easymock', version:'3.4'
+    testCompile group: 'org.apache.commons', name: 'commons-io', version:'1.3.2'
+    testCompile group: 'io.findify', name: 's3mock_2.12', version:'0.2.3'
+    testCompile group: 'org.slf4j', name: 'slf4j-simple', version:'1.7.25'
+    compile group: 'org.apache.kafka', name: 'connect-api', version:'0.11.0.0'
+    compile group: 'org.slf4j', name: 'slf4j-api', version:'1.7.6'
+}
+
+apply plugin: "com.github.johnrengelman.shadow"
+
+
+shadowJar {
+    dependencies {
+        // provided in the connect classpath
+        exclude(dependency('org.apache.kafka:connect-api:0.10.1.0'))
+        exclude(dependency('org.apache.kafka:kafka-clients:0.10.1.0'))
+        exclude(dependency('net.jpountz.lz4:.*:.*'))
+        exclude(dependency('org.xerial.snappy:.*:.*'))
+        exclude(dependency('org.slf4j:.*:.*'))
+    }
+
+    // for things we directly depend on, repackage so we don't conflict with other connectors
+    relocate 'com.amazonaws', 'org.apache.kafka.directory.shade.amazonaws'
+    relocate 'com.fasterxml', 'org.apache.kafka.directory.shade.fasterxml'
+    relocate 'org.apache.commons', 'org.apache.kafka.directory.shade.apache.commons'
+    relocate 'org.apache.http', 'org.apache.kafka.directory.shade.apache.http'
+    relocate 'org.joda', 'org.apache.kafka.directory.shade.joda'
+}
+
+ext {
+    pomHumanName = 'Kafka Connect S3/Swift/local'
+    pomDesc = 'S3, Swift & LocalFS directory monitor'
+}
