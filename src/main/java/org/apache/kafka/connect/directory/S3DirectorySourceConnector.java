@@ -97,6 +97,8 @@ public class S3DirectorySourceConnector extends SourceConnector {
         if (service_endpoint == null || service_endpoint.isEmpty())
             throw new ConnectException("missing " + SERVICE_ENDPOINT);
 
+
+
     }
 
 

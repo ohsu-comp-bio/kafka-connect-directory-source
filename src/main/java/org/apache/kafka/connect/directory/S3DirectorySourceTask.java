@@ -40,6 +40,7 @@ public class S3DirectorySourceTask extends SourceTask {
     private static final Schema VALUE_SCHEMA = Schema.STRING_SCHEMA;
     private ConcurrentLinkedQueue<SourceRecord> recordQueue = new ConcurrentLinkedQueue<>();
 
+
     @Override
     public String version() {
         return new S3DirectorySourceConnector().version();
@@ -52,6 +53,11 @@ public class S3DirectorySourceTask extends SourceTask {
      */
     @Override
     public void start(Map<String, String> props) {
+
+        Map<String, String> env = System.getenv();
+        for (String envName : env.keySet()) {
+            log.warn(envName + "=" + env.get(envName));
+        }
 
         String schemaName = props.get(S3DirectorySourceConnector.SCHEMA_NAME);
 

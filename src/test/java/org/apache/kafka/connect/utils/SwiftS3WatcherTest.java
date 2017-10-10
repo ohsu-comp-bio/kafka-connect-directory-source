@@ -39,8 +39,8 @@ public class SwiftS3WatcherTest  {
 
     @Before
     public void setup() throws IOException {
-        System.getProperties().put("aws.accessKeyId", "724596f1fe184f02b8c682fa2734a4e6");
-        System.getProperties().put("aws.secretKey", "ae40a4e76d1d4aeea74b85142b18a8fb");
+//        System.getProperties().put("aws.accessKeyId", "724596f1fe184f02b8c682fa2734a4e6");
+//        System.getProperties().put("aws.secretKey", "ae40a4e76d1d4aeea74b85142b18a8fb");
         logger.info("error {}", logger.isErrorEnabled());
         logger.info("info {}", logger.isInfoEnabled());
         logger.info("debug {}", logger.isDebugEnabled());
