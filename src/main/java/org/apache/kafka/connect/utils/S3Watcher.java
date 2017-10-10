@@ -2,6 +2,8 @@ package org.apache.kafka.connect.utils;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.ClientConfiguration;
+import com.amazonaws.Protocol;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
@@ -75,9 +77,11 @@ public abstract class  S3Watcher  extends TimerTask {
 
             AmazonS3 s3 = null ;
 
-//            ClientConfiguration cc = new ClientConfiguration();
-//            cc.withSignerOverride("S3SignerType");
-//            cc.setProtocol(Protocol.HTTP);
+            ClientConfiguration cc = new ClientConfiguration();
+            if (serviceEndpoint.startsWith("http:")) {
+                cc.withSignerOverride("S3SignerType");
+                cc.setProtocol(Protocol.HTTP);
+            }
 
 
             AwsClientBuilder.EndpointConfiguration ec = new AwsClientBuilder.EndpointConfiguration(this.serviceEndpoint, this.regionName);
@@ -87,7 +91,7 @@ public abstract class  S3Watcher  extends TimerTask {
                     .withPathStyleAccessEnabled(true)
                     .withCredentials(new DefaultAWSCredentialsProviderChain())
                     .withEndpointConfiguration(ec)
-//                    .withClientConfiguration(cc)
+                    .withClientConfiguration(cc)
                     .build();
 
 
