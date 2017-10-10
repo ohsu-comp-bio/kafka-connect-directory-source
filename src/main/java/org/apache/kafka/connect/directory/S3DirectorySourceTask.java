@@ -85,8 +85,8 @@ public class S3DirectorySourceTask extends SourceTask {
             @Override
             protected void onObjectFound(Bucket bucket, S3ObjectSummary summary, ObjectMetadata meta, String nextMarker) {
                 try {
-                    log.debug(bucket.getName());
-                    log.debug("     k:" + summary.getKey());
+                    log.warn(bucket.getName());
+                    log.warn("     k:" + summary.getKey());
                     log.debug("  etag:" + summary.getETag());
                     log.debug("  meta:" + meta);
                     log.debug("  mark:" + nextMarker);
@@ -118,6 +118,7 @@ public class S3DirectorySourceTask extends SourceTask {
         while (!recordQueue.isEmpty()) {
             records.add(recordQueue.poll());
         }
+        log.warn("poll() returning " + records.size() + " elements");
         return records;
     }
 
