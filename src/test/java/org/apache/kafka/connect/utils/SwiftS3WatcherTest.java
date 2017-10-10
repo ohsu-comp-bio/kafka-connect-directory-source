@@ -75,7 +75,7 @@ public class SwiftS3WatcherTest  {
         timer.schedule(task, new Date());
         Thread.sleep(20000);
 
-        assert objects.size() == 2;
+        assert objects.size() > 2;
 
     }
 
