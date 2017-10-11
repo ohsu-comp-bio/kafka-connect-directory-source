@@ -3,10 +3,8 @@ package org.apache.kafka.connect.directory;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import org.apache.kafka.common.errors.InterruptException;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.source.SourceTask;
@@ -22,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * DirectorySourceTask is a Task that reads changes from a directory for storage
@@ -38,7 +36,7 @@ public class S3DirectorySourceTask extends SourceTask {
     private TimerTask task;
     private String topic;
     private static final Schema VALUE_SCHEMA = Schema.STRING_SCHEMA;
-    private ConcurrentLinkedQueue<SourceRecord> recordQueue = new ConcurrentLinkedQueue<>();
+    private LinkedBlockingQueue<SourceRecord> recordQueue = new LinkedBlockingQueue<>();
 
 
     @Override
@@ -54,11 +52,14 @@ public class S3DirectorySourceTask extends SourceTask {
     @Override
     public void start(Map<String, String> props) {
 
-        log.warn("********** S3DirectorySourceConnector PROPERTIES START");
+        log.warn("********** S3DirectorySourceConnector ENV START");
         Map<String, String> env = System.getenv();
         for (String envName : env.keySet()) {
             log.warn(envName + "=" + env.get(envName));
         }
+        log.warn("********** S3DirectorySourceConnector ENV END");
+        log.warn("********** S3DirectorySourceConnector PROPERTIES START");
+        log.warn(props.toString());
         log.warn("********** S3DirectorySourceConnector PROPERTIES END");
 
         String schemaName = props.get(S3DirectorySourceConnector.SCHEMA_NAME);
@@ -94,8 +95,8 @@ public class S3DirectorySourceTask extends SourceTask {
                     Map<String,Object> objectMap = new HashMap<>();
                     objectMap.put("summary", summary);
                     objectMap.put("meta",meta);
-                    recordQueue.add(new SourceRecord(offsetKey(bucket.getName()), offsetValue(nextMarker), topic, VALUE_SCHEMA, objectMapper.writeValueAsString(objectMap)));
-                } catch (JsonProcessingException e) {
+                    recordQueue.put(new SourceRecord(offsetKey(bucket.getName()), offsetValue(nextMarker), topic, VALUE_SCHEMA, objectMapper.writeValueAsString(objectMap)));
+                } catch (Exception e) {
                     log.warn("onObjectFound",e);
                 }
             }
@@ -112,13 +113,14 @@ public class S3DirectorySourceTask extends SourceTask {
      * @throws InterruptedException
      */
     @Override
-    public List<SourceRecord> poll() throws InterruptException {
+    public List<SourceRecord> poll() throws InterruptedException {
         List<SourceRecord> records = new ArrayList<>();
         //consume the queue
         while (!recordQueue.isEmpty()) {
-            records.add(recordQueue.poll());
+            records.add(recordQueue.take());
+            log.warn("poll() returning " + records.size() + " elements");
         }
-        log.warn("poll() returning " + records.size() + " elements");
+
         return records;
     }
 
