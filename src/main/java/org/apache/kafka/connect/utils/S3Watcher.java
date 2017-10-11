@@ -69,10 +69,10 @@ public abstract class  S3Watcher  extends TimerTask {
     public final void run() {
         try {
 
-            log.debug("******************************************");
-            log.debug(serviceEndpoint);
-            log.debug(regionName);
-            log.debug("******************************************");
+            log.warn("******************************************");
+            log.warn(serviceEndpoint);
+            log.warn(regionName);
+            log.warn("******************************************");
 
 
             AmazonS3 s3 = null ;
@@ -105,8 +105,11 @@ public abstract class  S3Watcher  extends TimerTask {
 //                    .withCredentials(new EnvironmentVariableCredentialsProvider())
 
 
+            log.warn("listing buckets ...");
             for (Bucket bucket : s3.listBuckets() ) {
-                if (bucketName != null && bucket.getName() != bucketName) {
+                log.warn("bucket.getName:>" + bucket.getName() + "<");
+                if (bucketName != null && !bucket.getName().equals(bucketName)) {
+                    log.warn("no match bucketName:>" + bucketName + "<");
                     continue;
                 }
                 ObjectListing ol = null;
@@ -118,6 +121,7 @@ public abstract class  S3Watcher  extends TimerTask {
                     ol = s3.listObjects(req);
                     List<S3ObjectSummary> objects = ol.getObjectSummaries();
                     for (S3ObjectSummary os : objects) {
+                        log.warn(os.getKey());
                         S3Object o = s3.getObject(bucket.getName(), os.getKey());
                         ObjectMetadata meta = o.getObjectMetadata();
                         nextMarker = ol.getNextMarker();

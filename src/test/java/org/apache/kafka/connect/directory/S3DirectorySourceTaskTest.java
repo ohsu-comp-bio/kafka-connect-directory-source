@@ -28,9 +28,11 @@ public class S3DirectorySourceTaskTest extends AbstractS3Test {
         props.put(S3DirectorySourceConnector.SCHEMA_NAME, "s3");
         props.put(S3DirectorySourceConnector.TOPIC, "dummy");
         props.put(S3DirectorySourceConnector.INTERVAL_MS, "60000");
+        props.put(S3DirectorySourceConnector.BUCKET_NAMES, "testbucket");
         task.start(props);
         List<SourceRecord> records = new ArrayList<>();
         while(records.size() < 2) {
+            log.warn("polling()");
             records.addAll(task.poll());
         }
         task.stop();

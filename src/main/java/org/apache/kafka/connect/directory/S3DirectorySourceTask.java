@@ -103,6 +103,7 @@ public class S3DirectorySourceTask extends SourceTask {
         };
         Timer timer = new Timer();
         timer.schedule(task, new Date(), Long.parseLong(interval_ms));
+        log.warn("**** task scheduled");
     }
 
 
@@ -116,11 +117,9 @@ public class S3DirectorySourceTask extends SourceTask {
     public List<SourceRecord> poll() throws InterruptedException {
         List<SourceRecord> records = new ArrayList<>();
         //consume the queue
-        while (!recordQueue.isEmpty()) {
-            records.add(recordQueue.take());
-            log.warn("poll() returning " + records.size() + " elements");
-        }
-
+        log.warn("poll() start");
+        records.add(recordQueue.take());
+        log.warn("poll() returning " + records.size() + " elements");
         return records;
     }
 
