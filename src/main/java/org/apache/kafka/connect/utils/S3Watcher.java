@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.TimerTask;
 
 /**
- * Read object and meta data from
+ * Read object and meta data from and S3 compliant bucket
  */
 
 public abstract class  S3Watcher  extends TimerTask {
@@ -69,14 +69,12 @@ public abstract class  S3Watcher  extends TimerTask {
     public final void run() {
         try {
 
-            log.warn("******************************************");
-            log.warn(serviceEndpoint);
-            log.warn(regionName);
-            log.warn("******************************************");
+            log.debug("******************************************");
+            log.debug(serviceEndpoint);
+            log.debug(regionName);
+            log.debug("******************************************");
 
-
-            AmazonS3 s3 = null ;
-
+            // swift signing
             ClientConfiguration cc = new ClientConfiguration();
             if (serviceEndpoint.startsWith("http:")) {
                 cc.withSignerOverride("S3SignerType");
@@ -86,7 +84,7 @@ public abstract class  S3Watcher  extends TimerTask {
 
             AwsClientBuilder.EndpointConfiguration ec = new AwsClientBuilder.EndpointConfiguration(this.serviceEndpoint, this.regionName);
 
-            s3 = AmazonS3ClientBuilder
+            AmazonS3 s3 = AmazonS3ClientBuilder
                     .standard()
                     .withPathStyleAccessEnabled(true)
                     .withCredentials(new DefaultAWSCredentialsProviderChain())
@@ -94,22 +92,11 @@ public abstract class  S3Watcher  extends TimerTask {
                     .withClientConfiguration(cc)
                     .build();
 
-
-
-//            ClientConfiguration opts = new ClientConfiguration();
-//            opts.setSignerOverride("AWSS3V4SignerType");  // NOT "AWS3SignerType"
-//            AmazonS3Client s3 = new AmazonS3Client(opts);
-//            s3.setEndpoint(serviceEndpoint);
-
-//                    .withCredentials(new AWSStaticCredentialsProvider(new AnonymousAWSCredentials()))
-//                    .withCredentials(new EnvironmentVariableCredentialsProvider())
-
-
-            log.warn("listing buckets ...");
+            log.debug("listing buckets ...");
             for (Bucket bucket : s3.listBuckets() ) {
-                log.warn("bucket.getName:>" + bucket.getName() + "<");
+                log.debug("bucket.getName:>" + bucket.getName() + "<");
                 if (bucketName != null && !bucket.getName().equals(bucketName)) {
-                    log.warn("no match bucketName:>" + bucketName + "<");
+                    log.debug("no match bucketName:>" + bucketName + "<");
                     continue;
                 }
                 ObjectListing ol = null;
