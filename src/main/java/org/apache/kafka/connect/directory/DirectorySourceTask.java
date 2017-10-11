@@ -1,6 +1,5 @@
 package org.apache.kafka.connect.directory;
 
-import org.apache.kafka.common.errors.InterruptException;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.SchemaBuilder;
 import org.apache.kafka.connect.data.Struct;
@@ -12,19 +11,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileLock;
 import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.LinkedBlockingQueue;
 
 
 /**
- * DirectorySourceTask is a Task that reads changes from a directory for storage
- * new binary detected files in Kafka.
+ * DirectorySourceTask reads changes from a directory for storage, writes to kafka
  *
  * @author Alex Piermatteo
  */
@@ -100,31 +106,28 @@ public class DirectorySourceTask extends SourceTask {
      * @throws InterruptedException
      */
     @Override
-    public List<SourceRecord> poll() throws InterruptException {
+    public List<SourceRecord> poll() throws InterruptedException {
 
         List<SourceRecord> records = new ArrayList<>();
-        Queue<File> queue = ((DirWatcher) task).getFilesQueue();
-        //consume here the pool
-        while (!queue.isEmpty()) {
-            File file = queue.poll();
+        LinkedBlockingQueue<File> queue = ((DirWatcher) task).getFilesQueue();
+        File file = queue.take();
+        try {
+            RandomAccessFile in = new RandomAccessFile(file, "rw");
+            FileLock lock = null;
             try {
-                RandomAccessFile in = new RandomAccessFile(file, "rw");
-                FileLock lock = null;
-                try {
-                    lock = in.getChannel().lock();
-                    records.addAll(createUpdateRecord(file));
-                    lock.release();
-                } catch(Exception ex) {
-                    retries.add(file);
-                    records.add(createPendingRecord(file));
-                    lock.release();
-                } finally {
-                    in.close();
-                }
+                lock = in.getChannel().lock();
+                records.addAll(createUpdateRecord(file));
+                lock.release();
             } catch(Exception ex) {
                 retries.add(file);
                 records.add(createPendingRecord(file));
+                lock.release();
+            } finally {
+                in.close();
             }
+        } catch(Exception ex) {
+            retries.add(file);
+            records.add(createPendingRecord(file));
         }
         if (retries.size() > 0) {
             queue.addAll(retries);

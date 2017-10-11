@@ -12,8 +12,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
-import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Collections;
+import java.util.Map;
+import java.util.TimerTask;
+import java.util.concurrent.LinkedBlockingQueue;
 
 
 /**
@@ -29,7 +31,7 @@ public abstract class DirWatcher extends TimerTask {
     private String path;
     private File filesArray[];
     private DirFilterWatcher dfw;
-    private ConcurrentLinkedQueue<File> filesQueue;
+    private LinkedBlockingQueue<File> filesQueue;
     FileTime lastUpdate = null;
     FileTime maxTimestamp = null;
 
@@ -44,7 +46,7 @@ public abstract class DirWatcher extends TimerTask {
         dfw = new DirFilterWatcher(filter);
         this.offsetStorageReader = offsetStorageReader;
 
-        filesQueue = new ConcurrentLinkedQueue<File>();
+        filesQueue = new LinkedBlockingQueue<File>();
     }
 
     /**
@@ -98,12 +100,13 @@ public abstract class DirWatcher extends TimerTask {
                     })
                     .filter(this::hasUpdate).map(Path::toFile)
                     .toArray(File[]::new);
-            filesQueue.addAll(Arrays.asList(filesArray));
             lastUpdate = maxTimestamp;
             for (File f: filesArray) {
                 onChange(f, "NEW OR MODIFIED");
+                filesQueue.put(f);
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
+            log.warn("continuing",e);
         }
     }
 
@@ -111,7 +114,7 @@ public abstract class DirWatcher extends TimerTask {
     /**
      * Expose the files queue
      */
-    public ConcurrentLinkedQueue<File> getFilesQueue() {
+    public LinkedBlockingQueue<File> getFilesQueue() {
         return filesQueue;
     }
 

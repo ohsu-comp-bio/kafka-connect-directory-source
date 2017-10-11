@@ -1,10 +1,11 @@
 package org.apache.kafka.connect.utils;
 
-import org.junit.Before;
+import org.apache.kafka.connect.storage.OffsetStorageReader;
 import org.junit.Test;
-import org.powermock.api.easymock.PowerMock;
 
-import java.io.IOException;
+import java.io.File;
+import java.util.Collection;
+import java.util.Map;
 
 
 /**
@@ -13,16 +14,29 @@ import java.io.IOException;
  */
 public class DirWatcherTest {
 
-    @Before
-    public void setup() throws IOException {
-    }
+
 
     @Test
     public void testNormalLifecycle() {
-    }
+        OffsetStorageReader offsetStorageReader = new OffsetStorageReader() {
+            @Override
+            public <T> Map<String, Object> offset(Map<String, T> map) {
+                return null;
+            }
 
-    private void replay() {
-        PowerMock.replayAll();
+            @Override
+            public <T> Map<Map<String, T>, Map<String, Object>> offsets(Collection<Map<String, T>> collection) {
+                return null;
+            }
+        };
+        DirWatcher dirWatcher = new DirWatcher(offsetStorageReader,"src",null) {
+            @Override
+            protected void onChange(File file, String action) {
+                //System.err.println(file);
+            }
+        };
+        dirWatcher.run();
+        assert dirWatcher.getFilesQueue().size() > 0;
     }
 
 }
