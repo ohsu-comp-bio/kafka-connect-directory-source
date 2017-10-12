@@ -75,8 +75,11 @@ public class S3DirectorySourceTask extends SourceTask {
         // override marker with partition, if it exists
         if (bucketName != null) {
             Map<String, Object> off = context.offsetStorageReader().offset(offsetKey(bucketName));
-            if (off != null)
+            log.warn("offset " + off);
+            if (off != null) {
                 marker = (String) off.get(MARKER);
+                log.warn("marker override " + marker);
+            }
         }
 
         String region_name = props.get(S3DirectorySourceConnector.REGION_NAME);
@@ -95,7 +98,7 @@ public class S3DirectorySourceTask extends SourceTask {
                     Map<String,Object> objectMap = new HashMap<>();
                     objectMap.put("summary", summary);
                     objectMap.put("meta",meta);
-                    recordQueue.put(new SourceRecord(offsetKey(bucket.getName()), offsetValue(nextMarker), topic, VALUE_SCHEMA, objectMapper.writeValueAsString(objectMap)));
+                    recordQueue.put(new SourceRecord(offsetKey(bucket.getName()), offsetValue(nextMarker), topic, VALUE_SCHEMA, nextMarker, VALUE_SCHEMA, objectMapper.writeValueAsString(objectMap)));
                 } catch (Exception e) {
                     log.warn("onObjectFound",e);
                 }
@@ -120,6 +123,7 @@ public class S3DirectorySourceTask extends SourceTask {
         log.warn("poll() start");
         records.add(recordQueue.take());
         log.warn("poll() returning " + records.size() + " elements");
+        log.warn("poll() returning " + records );
         return records;
     }
 

@@ -111,7 +111,7 @@ public abstract class  S3Watcher  extends TimerTask {
                         log.warn(os.getKey());
                         S3Object o = s3.getObject(bucket.getName(), os.getKey());
                         ObjectMetadata meta = o.getObjectMetadata();
-                        nextMarker = ol.getNextMarker();
+                        nextMarker = os.getKey();
                         onObjectFound(bucket, os, meta, nextMarker);
                     }
                 } while(ol.isTruncated() == true );
